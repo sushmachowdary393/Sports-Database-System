@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sports League DBMS Project</title>
+
+<style>
+
+/* -------- BODY -------- */
+
+body{
+font-family:Segoe UI, sans-serif;
+margin:0;
+background:linear-gradient(135deg,#5f2c82,#49a09d);
+min-height:100vh;
+}
+/* LOGIN */
+  
+
+  
+.login-page{
+  
+    display:flex;
+  
+    justify-content:center;
+  
+    align-items:center;
+  
+    height:100vh;
+  
+    background:linear-gradient(135deg,#5f2c82,#49a09d);
+  
+}
+  
+
+  
+.login-box{
+  
+    background:white;
+  
+    padding:30px;
+  
+    border-radius:12px;
+  
+    width:300px;
+  
+    text-align:center;
+  
+}
+  
+
+  
+.login-box input{
+  
+    width:90%;
+  
+    padding:10px;
+  
+    margin:8px 0;
+  
+}
+  
+
+/* -------- HEADER -------- */
+
+header{
+color:white;
+padding:25px;
+text-align:center;
+font-size:30px;
+font-weight:bold;
+letter-spacing:1px;
+}
+
+/* -------- CONTAINER -------- */
+
+.container{
+padding:30px;
+background:#f8fafc;
+border-radius:12px;
+margin:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+
+/* -------- DASHBOARD GRID -------- */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+}
+
+/* -------- CARDS -------- */
+
+.card{
+background:white;
+padding:30px;
+border-radius:12px;
+text-align:center;
+cursor:pointer;
+font-weight:bold;
+font-size:18px;
+box-shadow:0 6px 20px rgba(0,0,0,0.15);
+transition:0.3s;
+}
+.card:hover{
+transform:translateY(-5px);
+background:#4f46e5;
+color:white;
+}
+
+
+/* -------- BUTTONS -------- */
+
+button{
+padding:7px 18px;
+background:#22c55e;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#16a34a;
+}
+
+.back{
+background:#ef4444;
+margin-bottom:20px;
+}
+
+.back:hover{
+background:#dc2626;
+}
+
+/* -------- SEARCH -------- */
+
+.search{
+margin-bottom:20px;
+padding:10px;
+width:300px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* -------- TABLE -------- */
+
+table{
+border-collapse:collapse;
+width:100%;
+margin-top:10px;
+background:white;
+border-radius:6px;
+overflow:hidden;
+}
+
+th,td{
+border:1px solid #e5e7eb;
+padding:8px;
+text-align:center;
+}
+
+th{
+background:#4f46e5;
+color:white;
+}
+
+/* -------- QUERY SECTION -------- */
+
+.query{
+background:white;
+padding:10px;
+border-radius:8px;
+margin-bottom:20px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+
+
+.query-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:500;
+}
+
+.result{
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+    <!-- LOGIN -->
+    <div id="loginPage" class="login-page"><div class="login-box">
+
+    <h2>Sports Login</h2>
+
+    <input id="user" placeholder="Username">
+
+    <input id="pass" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <p id="err" style="color:red;"></p>
+
+</div>
+</div><!-- DASHBOARD --><div id="app"><div class="sidebar"></div>
+
+<header>🏏SPORTS</header>
+<div class="container">
+
+<button class="back" onclick="goBack()" id="backBtn" style="display:none;">Back to Dashboard</button>
+
+<input class="search" id="searchBox" onkeyup="searchQuery()" placeholder="Search queries..." style="display:none;">
+
+<!-- DASHBOARD -->
+
+<div id="dashboard" class="grid">
+
+<div class="card" onclick="openEntity('SPORT')">SPORT</div>
+<div class="card" onclick="openEntity('PLAYER')">PLAYER</div>
+<div class="card" onclick="openEntity('TEAM')">TEAM</div>
+<div class="card" onclick="openEntity('GAME')">GAME</div>
+<div class="card" onclick="openEntity('STADIUM')">STADIUM</div>
+<div class="card" onclick="openEntity('REFEREE')">REFEREE</div>
+<div class="card" onclick="openEntity('SPONSOR')">SPONSOR</div>
+<div class="card" onclick="openEntity('COACH')">COACH</div>
+<div class="card" onclick="openEntity('POSITION')">POSITION</div>
+<div class="card" onclick="openEntity('PLAYER_GAME')">PLAYER_GAME</div>
+<div class="card" onclick="openEntity('INJURY_RECORD')">INJURY_RECORD</div>
+
+</div>
+
+<h2 id="entityTitle"></h2>
+
+<h3>Entity Database Table</h3>
+<div id="entityTable"></div>
+
+<h3>Queries and Questions</h3>
+<div id="questions"></div>
+
+</div>
+<script>
+document.querySelectorAll("h2,h3").forEach(el=>{
+if(el.innerText.includes("Entity Database Table") || 
+   el.innerText.includes("Queries and Questions")){
+el.style.display="none"
+}
+})
+</script>
+
+<script>
+function login(){
+  
+    if(user.value==="admin" && pass.value==="admin123"){
+  
+        loginPage.style.display="none";
+  
+        app.style.display="block";
+  
+    }else{
+  
+        err.innerText="Invalid login";
+  
+    }
+  
+}
+/* -------- DATABASE -------- */
+const database={
+
+SPORT:[
+{Sport_ID:1,Sport_Name:"Cricket"},
+{Sport_ID:2,Sport_Name:"Football"},
+{Sport_ID:3,Sport_Name:"Basketball"},
+{Sport_ID:4,Sport_Name:"Tennis"},
+{Sport_ID:5,Sport_Name:"Hockey"},
+{Sport_ID:6,Sport_Name:"Badminton"}
+],
+
+TEAM:[
+{Team_ID:101,Team_Name:"Mumbai Warriors",Sport_ID:1,City:"Mumbai"},
+{Team_ID:102,Team_Name:"Chennai Kings",Sport_ID:1,City:"Chennai"},
+{Team_ID:103,Team_Name:"Barcelona FC",Sport_ID:2,City:"Barcelona"},
+{Team_ID:104,Team_Name:"LA Lakers",Sport_ID:3,City:"Los Angeles"},
+{Team_ID:105,Team_Name:"India Smashers",Sport_ID:6,City:"Delhi"}
+],
+
+PLAYER:[
+{Player_ID:201,Player_Name:"Virat Kohli",Sport_ID:1,Team_ID:101,Skill:9},
+{Player_ID:202,Player_Name:"Rohit Sharma",Sport_ID:1,Team_ID:101,Skill:9},
+{Player_ID:203,Player_Name:"Lionel Messi",Sport_ID:2,Team_ID:103,Skill:10},
+{Player_ID:204,Player_Name:"LeBron James",Sport_ID:3,Team_ID:104,Skill:10},
+{Player_ID:205,"Player_Name":"PV Sindhu",Sport_ID:6,Team_ID:105,Skill:9},
+{Player_ID:206,Player_Name:"Roger Federer",Sport_ID:4,Team_ID:null,Skill:10}
+],
+
+STADIUM:[
+{Stadium_ID:301,Stadium_Name:"Wankhede Stadium",City:"Mumbai"},
+{Stadium_ID:302,Stadium_Name:"Camp Nou",City:"Barcelona"},
+{Stadium_ID:303,Stadium_Name:"Staples Center",City:"Los Angeles"},
+{Stadium_ID:304,Stadium_Name:"Wimbledon Court",City:"London"}
+],
+
+SPONSOR:[
+
+{Sponsor_ID:901,Sponsor_Name:"Pepsi",Sport_ID:1,Team_ID:101,Country:"USA"},
+{Sponsor_ID:902,Sponsor_Name:"Nike",Sport_ID:2,Team_ID:103,Country:"USA"},
+{Sponsor_ID:903,Sponsor_Name:"Adidas",Sport_ID:2,Team_ID:103,Country:"Germany"},
+{Sponsor_ID:904,Sponsor_Name:"Puma",Sport_ID:3,Team_ID:104,Country:"Germany"},
+{Sponsor_ID:905,Sponsor_Name:"Red Bull",Sport_ID:3,Team_ID:104,Country:"Austria"},
+{Sponsor_ID:906,Sponsor_Name:"Yonex",Sport_ID:6,Team_ID:105,Country:"Japan"},
+{Sponsor_ID:907,Sponsor_Name:"BCCI",Sport_ID:1,Team_ID:102,Country:"India"},
+{Sponsor_ID:908,Sponsor_Name:"Emirates",Sport_ID:2,Team_ID:103,Country:"UAE"},
+{Sponsor_ID:909,Sponsor_Name:"Samsung",Sport_ID:3,Team_ID:104,Country:"South Korea"},
+{Sponsor_ID:910,Sponsor_Name:"Tata",Sport_ID:1,Team_ID:101,Country:"India"}
+
+],
+
+GAME:[
+{Game_ID:501,Sport_ID:1,Team_ID:101,Stadium_ID:301},
+{Game_ID:502,Sport_ID:2,Team_ID:103,Stadium_ID:302},
+{Game_ID:503,Sport_ID:3,Team_ID:104,Stadium_ID:303},
+{Game_ID:504,Sport_ID:4,Team_ID:null,Stadium_ID:304}
+],
+
+COACH:[
+{Coach_ID:601,Coach_Name:"Rahul Dravid",Team_ID:101},
+{Coach_ID:602,Coach_Name:"Stephen Fleming",Team_ID:102},
+{Coach_ID:603,Coach_Name:"Xavi Hernandez",Team_ID:103},
+{Coach_ID:604,Coach_Name:"Darvin Ham",Team_ID:104},
+{Coach_ID:605,Coach_Name:"Pullela Gopichand",Team_ID:105}
+],
+
+REFEREE:[
+{Referee_ID:701,Referee_Name:"Anil Chaudhary",Sport_ID:1},
+{Referee_ID:702,Referee_Name:"Howard Webb",Sport_ID:2},
+{Referee_ID:703,Referee_Name:"Scott Foster",Sport_ID:3}
+],
+
+POSITION:[
+{Position_ID:1,Position_Name:"Batsman",Sport_ID:1},
+{Position_ID:2,Position_Name:"Bowler",Sport_ID:1},
+{Position_ID:3,Position_Name:"Goalkeeper",Sport_ID:2},
+{Position_ID:4,Position_Name:"Striker",Sport_ID:2},
+{Position_ID:5,Position_Name:"Guard",Sport_ID:3}
+],
+
+PLAYER_GAME:[
+{Player_ID:201,Game_ID:501},
+{Player_ID:202,Game_ID:501},
+{Player_ID:203,Game_ID:502},
+{Player_ID:204,Game_ID:503},
+{Player_ID:205,Game_ID:504}
+],
+
+INJURY_RECORD:[
+{Injury_ID:801,Player_ID:201,Severity:"Minor"},
+{Injury_ID:802,Player_ID:203,Severity:"Major"},
+{Injury_ID:803,Player_ID:205,Severity:"Minor"}
+]
+
+};
+
+
+/* -------- 100 QUERIES -------- */
+
+const queries = {
+
+/* ---------------- SPORT (1–10) ---------------- */
+
+SPORT:[
+
+{q:" Display all sports", sql:"SELECT * FROM SPORT"},
+{q:" Display sport with ID 1", sql:"SELECT * FROM SPORT WHERE Sport_ID=1"},
+{q:" Display sports ordered by name", sql:"SELECT * FROM SPORT ORDER BY Sport_Name"},
+{q:" Count total sports", sql:"SELECT COUNT(*) FROM SPORT"},
+{q:" Display sports starting with B", sql:"SELECT * FROM SPORT WHERE Sport_Name LIKE 'B%'"},
+{q:" Display sports ending with t", sql:"SELECT * FROM SPORT WHERE Sport_Name LIKE '%t'"},
+{q:" Display sport Tennis", sql:"SELECT * FROM SPORT WHERE Sport_Name='Tennis'"},
+{q:" Display sport IDs greater than 3", sql:"SELECT * FROM SPORT WHERE Sport_ID>3"},
+{q:" Display sports ordered descending", sql:"SELECT * FROM SPORT ORDER BY Sport_Name DESC"},
+{q:" Display distinct sport names", sql:"SELECT DISTINCT Sport_Name FROM SPORT"}
+
+],
+
+/* ---------------- TEAM (11–20) ---------------- */
+
+TEAM:[
+
+{q:" Display all teams", sql:"SELECT * FROM TEAM"},
+{q:" Display teams in Mumbai", sql:"SELECT * FROM TEAM WHERE City='Mumbai'"},
+{q:" Display teams playing Cricket", sql:"SELECT * FROM TEAM WHERE Sport_ID=1"},
+{q:" Display teams ordered by name", sql:"SELECT * FROM TEAM ORDER BY Team_Name"},
+{q:" Count teams", sql:"SELECT COUNT(*) FROM TEAM"},
+{q:" Display teams from Delhi", sql:"SELECT * FROM TEAM WHERE City='Delhi'"},
+{q:" Display teams with Sport_ID=2", sql:"SELECT * FROM TEAM WHERE Sport_ID=2"},
+{q:" Display teams starting with B", sql:"SELECT * FROM TEAM WHERE Team_Name LIKE 'B%'"},
+{q:" Display teams ordered by city", sql:"SELECT * FROM TEAM ORDER BY City"},
+{q:" Display distinct cities", sql:"SELECT DISTINCT City FROM TEAM"}
+
+],
+
+/* ---------------- PLAYER (21–35) ---------------- */
+
+PLAYER:[
+
+{q:" Display all players", sql:"SELECT * FROM PLAYER"},
+{q:" Display players with skill > 9", sql:"SELECT * FROM PLAYER WHERE Skill>9"},
+{q:" Display players of team 101", sql:"SELECT * FROM PLAYER WHERE Team_ID=101"},
+{q:" Display players ordered by name", sql:"SELECT * FROM PLAYER ORDER BY Player_Name"},
+{q:" Count players", sql:"SELECT COUNT(*) FROM PLAYER"},
+{q:" Display players playing Football", sql:"SELECT * FROM PLAYER WHERE Sport_ID=2"},
+{q:" Display players with skill between 9 and 10", sql:"SELECT * FROM PLAYER WHERE Skill BETWEEN 9 AND 10"},
+{q:" Display players without team", sql:"SELECT * FROM PLAYER WHERE Team_ID IS NULL"},
+{q:" Display players ordered by skill desc", sql:"SELECT * FROM PLAYER ORDER BY Skill DESC"},
+{q:" Display distinct sport IDs from player", sql:"SELECT DISTINCT Sport_ID FROM PLAYER"},
+{q:" Display players starting with L", sql:"SELECT * FROM PLAYER WHERE Player_Name LIKE 'L%'"},
+{q:" Display players ending with i", sql:"SELECT * FROM PLAYER WHERE Player_Name LIKE '%i'"},
+{q:" Display maximum skill", sql:"SELECT MAX(Skill) FROM PLAYER"},
+{q:" Display minimum skill", sql:"SELECT MIN(Skill) FROM PLAYER"},
+{q:" Display average skill", sql:"SELECT AVG(Skill) FROM PLAYER"}
+
+],
+
+/* ---------------- STADIUM (36–45) ---------------- */
+
+STADIUM:[
+
+{q:" Display all stadiums", sql:"SELECT * FROM STADIUM"},
+{q:" Display stadiums in Mumbai", sql:"SELECT * FROM STADIUM WHERE City='Mumbai'"},
+{q:" Display stadiums ordered by name", sql:"SELECT * FROM STADIUM ORDER BY Stadium_Name"},
+{q:" Count stadiums", sql:"SELECT COUNT(*) FROM STADIUM"},
+{q:" Display stadiums starting with W", sql:"SELECT * FROM STADIUM WHERE Stadium_Name LIKE 'W%'"},
+{q:" Display stadiums ending with r", sql:"SELECT * FROM STADIUM WHERE Stadium_Name LIKE '%r'"},
+{q:" Display stadiums ordered by city", sql:"SELECT * FROM STADIUM ORDER BY City"},
+{q:" Display stadium with ID 301", sql:"SELECT * FROM STADIUM WHERE Stadium_ID=301"},
+{q:" Display stadiums not in London", sql:"SELECT * FROM STADIUM WHERE City!='London'"},
+{q:" Display distinct stadium cities", sql:"SELECT DISTINCT City FROM STADIUM"}
+
+],
+
+/* ---------------- SPONSOR (46–60) ---------------- */
+
+SPONSOR:[
+
+{q:" Display all sponsors", sql:"SELECT * FROM SPONSOR"},
+{q:" Display sponsors of Cricket", sql:"SELECT * FROM SPONSOR WHERE Sport_ID=1"},
+{q:" Display sponsors for team 101", sql:"SELECT * FROM SPONSOR WHERE Team_ID=101"},
+{q:" Display sponsors from USA", sql:"SELECT * FROM SPONSOR WHERE Country='USA'"},
+{q:" Count sponsors", sql:"SELECT COUNT(*) FROM SPONSOR"},
+{q:" Display sponsors ordered by name", sql:"SELECT * FROM SPONSOR ORDER BY Sponsor_Name"},
+{q:" Display sponsors starting with P", sql:"SELECT * FROM SPONSOR WHERE Sponsor_Name LIKE 'P%'"},
+{q:" Display sponsors ending with s", sql:"SELECT * FROM SPONSOR WHERE Sponsor_Name LIKE '%s'"},
+{q:" Display sponsors ordered by country", sql:"SELECT * FROM SPONSOR ORDER BY Country"},
+{q:" Display sponsors from India", sql:"SELECT * FROM SPONSOR WHERE Country='India'"},
+{q:" Display distinct countries", sql:"SELECT DISTINCT Country FROM SPONSOR"},
+{q:" Display sponsors with Sport_ID >2", sql:"SELECT * FROM SPONSOR WHERE Sport_ID>2"},
+{q:" Display sponsors for team 103", sql:"SELECT * FROM SPONSOR WHERE Team_ID=103"},
+{q:" Display sponsors ordered descending", sql:"SELECT * FROM SPONSOR ORDER BY Sponsor_Name DESC"},
+{q:" Display sponsor Adidas", sql:"SELECT * FROM SPONSOR WHERE Sponsor_Name='Adidas'"}
+
+],
+
+/* ---------------- GAME (61–70) ---------------- */
+
+GAME:[
+
+{q:" Display all games", sql:"SELECT * FROM GAME"},
+{q:" Display games in stadium 301", sql:"SELECT * FROM GAME WHERE Stadium_ID=301"},
+{q:" Display games of cricket", sql:"SELECT * FROM GAME WHERE Sport_ID=1"},
+{q:" Count games", sql:"SELECT COUNT(*) FROM GAME"},
+{q:" Display games ordered by Game_ID", sql:"SELECT * FROM GAME ORDER BY Game_ID"},
+{q:" Display games with team 103", sql:"SELECT * FROM GAME WHERE Team_ID=103"},
+{q:" Display games where team is null", sql:"SELECT * FROM GAME WHERE Team_ID IS NULL"},
+{q:" Display games ordered by sport", sql:"SELECT * FROM GAME ORDER BY Sport_ID"},
+{q:" Display games with Sport_ID>2", sql:"SELECT * FROM GAME WHERE Sport_ID>2"},
+{q:" Display distinct stadium IDs", sql:"SELECT DISTINCT Stadium_ID FROM GAME"}
+
+],
+
+/* ---------------- COACH (71–80) ---------------- */
+
+COACH:[
+
+{q:" Display all coaches", sql:"SELECT * FROM COACH"},
+{q:" Display coach of team 101", sql:"SELECT * FROM COACH WHERE Team_ID=101"},
+{q:" Count coaches", sql:"SELECT COUNT(*) FROM COACH"},
+{q:" Display coaches ordered by name", sql:"SELECT * FROM COACH ORDER BY Coach_Name"},
+{q:" Display coach starting with R", sql:"SELECT * FROM COACH WHERE Coach_Name LIKE 'R%'"},
+{q:" Display coach ending with d", sql:"SELECT * FROM COACH WHERE Coach_Name LIKE '%d'"},
+{q:" Display coach for team 105", sql:"SELECT * FROM COACH WHERE Team_ID=105"},
+{q:" Display coaches ordered desc", sql:"SELECT * FROM COACH ORDER BY Coach_Name DESC"},
+{q:" Display coach Stephen Fleming", sql:"SELECT * FROM COACH WHERE Coach_Name='Stephen Fleming'"},
+{q:" Display distinct team IDs", sql:"SELECT DISTINCT Team_ID FROM COACH"}
+
+],
+
+/* ---------------- REFEREE (81–90) ---------------- */
+
+REFEREE:[
+
+{q:" Display all referees", sql:"SELECT * FROM REFEREE"},
+{q:" Display referees of cricket", sql:"SELECT * FROM REFEREE WHERE Sport_ID=1"},
+{q:" Count referees", sql:"SELECT COUNT(*) FROM REFEREE"},
+{q:" Display referees ordered by name", sql:"SELECT * FROM REFEREE ORDER BY Referee_Name"},
+{q:" Display referee starting with A", sql:"SELECT * FROM REFEREE WHERE Referee_Name LIKE 'A%'"},
+{q:" Display referee ending with b", sql:"SELECT * FROM REFEREE WHERE Referee_Name LIKE '%b'"},
+{q:" Display referees with Sport_ID>1", sql:"SELECT * FROM REFEREE WHERE Sport_ID>1"},
+{q:" Display distinct sport IDs", sql:"SELECT DISTINCT Sport_ID FROM REFEREE"},
+{q:" Display referees ordered desc", sql:"SELECT * FROM REFEREE ORDER BY Referee_Name DESC"},
+{q:" Display referee Howard Webb", sql:"SELECT * FROM REFEREE WHERE Referee_Name='Howard Webb'"}
+
+],
+
+/* ---------------- POSITION (91–95) ---------------- */
+
+POSITION:[
+
+{q:" Display all positions", sql:"SELECT * FROM POSITION"},
+{q:" Display cricket positions", sql:"SELECT * FROM POSITION WHERE Sport_ID=1"},
+{q:" Count positions", sql:"SELECT COUNT(*) FROM POSITION"},
+{q:" Display positions ordered by name", sql:"SELECT * FROM POSITION ORDER BY Position_Name"},
+{q:" Display positions starting with B", sql:"SELECT * FROM POSITION WHERE Position_Name LIKE 'B%'"}
+
+],
+
+/* ---------------- PLAYER_GAME (96–98) ---------------- */
+
+PLAYER_GAME:[
+
+{q:" Display all player game records", sql:"SELECT * FROM PLAYER_GAME"},
+{q:" Display players in game 501", sql:"SELECT * FROM PLAYER_GAME WHERE Game_ID=501"},
+{q:" Count player game records", sql:"SELECT COUNT(*) FROM PLAYER_GAME"}
+
+],
+
+/* ---------------- INJURY_RECORD (99–100) ---------------- */
+
+INJURY_RECORD:[
+
+{q:" Display all injuries", sql:"SELECT * FROM INJURY_RECORD"},
+{q:" Display major injuries", sql:"SELECT * FROM INJURY_RECORD WHERE Severity='Major'"}
+
+]
+
+}
+
+
+/* -------- OPEN ENTITY -------- */
+function openEntity(entity){
+
+document.getElementById("dashboard").style.display="none"
+document.getElementById("backBtn").style.display="block"
+document.getElementById("searchBox").style.display="block"
+
+document.getElementById("entityTitle").innerText=entity
+
+displayTable(database[entity],"entityTable")
+
+showQueries(entity)
+
+}
+
+
+/* -------- SHOW QUERIES -------- */
+function showQueries(entity){
+
+let container=document.getElementById("questions")
+container.innerHTML=""
+
+let entityQueries = queries[entity]
+
+entityQueries.forEach((item,index)=>{
+
+let div=document.createElement("div")
+div.className="query"
+div.setAttribute("data-query",item.q.toLowerCase())
+
+div.innerHTML=`
+
+<div class="query-top">
+
+<div><b>${item.q}</b></div>
+
+<button onclick="runQuery('${entity}',${index})">Show Result</button>
+
+</div>
+
+<div style="margin-top:5px;color:#555;"><i>${item.sql}</i></div>
+
+<div class="result" id="result_${index}"></div>
+
+`
+
+container.appendChild(div)
+
+})
+
+}
+
+
+/* -------- RUN QUERY -------- */
+function runQuery(entity,index){
+
+let data = database[entity]
+let result = []
+
+switch(entity){
+
+/* -------- SPORT -------- */
+case "SPORT":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Sport_ID==1)
+if(index==2) result=[...data].sort((a,b)=>a.Sport_Name.localeCompare(b.Sport_Name))
+if(index==3) result=[{Total_Sports:data.length}]
+if(index==4) result=data.filter(r=>r.Sport_Name.startsWith("B"))
+if(index==5) result=data.filter(r=>r.Sport_Name.endsWith("t"))
+if(index==6) result=data.filter(r=>r.Sport_Name=="Tennis")
+if(index==7) result=data.filter(r=>r.Sport_ID>3)
+if(index==8) result=[...data].sort((a,b)=>b.Sport_Name.localeCompare(a.Sport_Name))
+if(index==9) result=[...new Map(data.map(i=>[i.Sport_Name,i])).values()]
+
+break
+
+
+/* -------- TEAM -------- */
+
+case "TEAM":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.City=="Mumbai")
+if(index==2) result=data.filter(r=>r.Sport_ID==1)
+if(index==3) result=[...data].sort((a,b)=>a.Team_Name.localeCompare(b.Team_Name))
+if(index==4) result=[{Total_Teams:data.length}]
+if(index==5) result=data.filter(r=>r.City=="Delhi")
+if(index==6) result=data.filter(r=>r.Sport_ID==2)
+if(index==7) result=data.filter(r=>r.Team_Name.startsWith("B"))
+if(index==8) result=[...data].sort((a,b)=>a.City.localeCompare(b.City))
+if(index==9) result=[...new Map(data.map(i=>[i.City,i])).values()]
+
+break
+
+
+/* -------- PLAYER -------- */
+
+case "PLAYER":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Skill>9)
+if(index==2) result=data.filter(r=>r.Team_ID==101)
+if(index==3) result=[...data].sort((a,b)=>a.Player_Name.localeCompare(b.Player_Name))
+if(index==4) result=[{Total_Players:data.length}]
+if(index==5) result=data.filter(r=>r.Sport_ID==2)
+if(index==6) result=data.filter(r=>r.Skill>=9 && r.Skill<=10)
+if(index==7) result=data.filter(r=>r.Team_ID==null)
+if(index==8) result=[...data].sort((a,b)=>b.Skill-a.Skill)
+if(index==9) result=[...new Map(data.map(i=>[i.Sport_ID,i])).values()]
+if(index==10) result=data.filter(r=>r.Player_Name.startsWith("L"))
+if(index==11) result=data.filter(r=>r.Player_Name.endsWith("i"))
+if(index==12) result=[{Max_Skill:Math.max(...data.map(r=>r.Skill))}]
+if(index==13) result=[{Min_Skill:Math.min(...data.map(r=>r.Skill))}]
+if(index==14) result=[{Avg_Skill:(data.reduce((a,b)=>a+b.Skill,0)/data.length).toFixed(2)}]
+
+break
+
+
+/* -------- STADIUM -------- */
+
+case "STADIUM":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.City=="Mumbai")
+if(index==2) result=[...data].sort((a,b)=>a.Stadium_Name.localeCompare(b.Stadium_Name))
+if(index==3) result=[{Total_Stadiums:data.length}]
+if(index==4) result=data.filter(r=>r.Stadium_Name.startsWith("W"))
+if(index==5) result=data.filter(r=>r.Stadium_Name.endsWith("r"))
+if(index==6) result=[...data].sort((a,b)=>a.City.localeCompare(b.City))
+if(index==7) result=data.filter(r=>r.Stadium_ID==301)
+if(index==8) result=data.filter(r=>r.City!="London")
+if(index==9) result=[...new Map(data.map(i=>[i.City,i])).values()]
+
+break
+
+
+/* -------- SPONSOR -------- */
+
+case "SPONSOR":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Sport_ID==1)
+if(index==2) result=data.filter(r=>r.Team_ID==101)
+if(index==3) result=data.filter(r=>r.Country=="USA")
+if(index==4) result=[{Total_Sponsors:data.length}]
+if(index==5) result=[...data].sort((a,b)=>a.Sponsor_Name.localeCompare(b.Sponsor_Name))
+if(index==6) result=data.filter(r=>r.Sponsor_Name.startsWith("P"))
+if(index==7) result=data.filter(r=>r.Sponsor_Name.endsWith("s"))
+if(index==8) result=[...data].sort((a,b)=>a.Country.localeCompare(b.Country))
+if(index==9) result=data.filter(r=>r.Country=="India")
+if(index==10) result=[...new Map(data.map(i=>[i.Country,i])).values()]
+if(index==11) result=data.filter(r=>r.Sport_ID>2)
+if(index==12) result=data.filter(r=>r.Team_ID==103)
+if(index==13) result=[...data].sort((a,b)=>b.Sponsor_Name.localeCompare(a.Sponsor_Name))
+if(index==14) result=data.filter(r=>r.Sponsor_Name=="Adidas")
+
+break
+
+
+/* -------- GAME -------- */
+
+case "GAME":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Stadium_ID==301)
+if(index==2) result=data.filter(r=>r.Sport_ID==1)
+if(index==3) result=[{Total_Games:data.length}]
+if(index==4) result=[...data].sort((a,b)=>a.Game_ID-b.Game_ID)
+if(index==5) result=data.filter(r=>r.Team_ID==103)
+if(index==6) result=data.filter(r=>r.Team_ID==null)
+if(index==7) result=[...data].sort((a,b)=>a.Sport_ID-b.Sport_ID)
+if(index==8) result=data.filter(r=>r.Sport_ID>2)
+if(index==9) result=[...new Map(data.map(i=>[i.Stadium_ID,i])).values()]
+
+break
+
+
+/* -------- COACH -------- */
+
+case "COACH":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Team_ID==101)
+if(index==2) result=[{Total_Coaches:data.length}]
+if(index==3) result=[...data].sort((a,b)=>a.Coach_Name.localeCompare(b.Coach_Name))
+if(index==4) result=data.filter(r=>r.Coach_Name.startsWith("R"))
+if(index==5) result=data.filter(r=>r.Coach_Name.endsWith("d"))
+if(index==6) result=data.filter(r=>r.Team_ID==105)
+if(index==7) result=[...data].sort((a,b)=>b.Coach_Name.localeCompare(a.Coach_Name))
+if(index==8) result=data.filter(r=>r.Coach_Name=="Stephen Fleming")
+if(index==9) result=[...new Map(data.map(i=>[i.Team_ID,i])).values()]
+
+break
+
+
+/* -------- REFEREE -------- */
+
+case "REFEREE":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Sport_ID==1)
+if(index==2) result=[{Total_Referees:data.length}]
+if(index==3) result=[...data].sort((a,b)=>a.Referee_Name.localeCompare(b.Referee_Name))
+if(index==4) result=data.filter(r=>r.Referee_Name.startsWith("A"))
+if(index==5) result=data.filter(r=>r.Referee_Name.endsWith("b"))
+if(index==6) result=data.filter(r=>r.Sport_ID>1)
+if(index==7) result=[...new Map(data.map(i=>[i.Sport_ID,i])).values()]
+if(index==8) result=[...data].sort((a,b)=>b.Referee_Name.localeCompare(a.Referee_Name))
+if(index==9) result=data.filter(r=>r.Referee_Name=="Howard Webb")
+
+break
+
+
+/* -------- POSITION -------- */
+
+case "POSITION":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Sport_ID==1)
+if(index==2) result=[{Total_Positions:data.length}]
+if(index==3) result=[...data].sort((a,b)=>a.Position_Name.localeCompare(b.Position_Name))
+if(index==4) result=data.filter(r=>r.Position_Name.startsWith("B"))
+
+break
+
+
+/* -------- PLAYER_GAME -------- */
+
+case "PLAYER_GAME":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Game_ID==501)
+if(index==2) result=[{Total_PlayerGames:data.length}]
+
+break
+
+
+/* -------- INJURY_RECORD -------- */
+
+case "INJURY_RECORD":
+
+if(index==0) result=data
+if(index==1) result=data.filter(r=>r.Severity=="Major")
+
+break
+
+}
+
+displayTable(result,`result_${index}`)
+
+}
+
+/* -------- TABLE DISPLAY -------- */
+function displayTable(data,target){
+
+let container=document.getElementById(target)
+
+if(!data || data.length==0){
+container.innerHTML="No Data"
+return
+}
+
+let html="<table>"
+
+let headers=Object.keys(data[0])
+
+html+="<tr>"
+
+headers.forEach(h=>{
+html+=`<th>${h}</th>`
+})
+
+html+="</tr>"
+
+data.forEach(row=>{
+
+html+="<tr>"
+
+headers.forEach(h=>{
+html+=`<td>${row[h]}</td>`
+})
+
+html+="</tr>"
+
+})
+
+html+="</table>"
+
+container.innerHTML=html
+
+}
+
+
+/* -------- SEARCH -------- */
+function searchQuery(){
+
+let input=document.getElementById("searchBox").value.toLowerCase()
+
+document.querySelectorAll(".query").forEach(q=>{
+
+let text=q.innerText.toLowerCase()
+
+q.style.display=text.includes(input)?"block":"none"
+
+})
+
+}
+
+/* -------- BACK -------- */
+function goBack(){
+
+document.getElementById("dashboard").style.display="grid"
+
+document.getElementById("entityTitle").innerText=""
+
+document.getElementById("entityTable").innerHTML=""
+
+document.getElementById("questions").innerHTML=""
+
+document.getElementById("backBtn").style.display="none"
+
+document.getElementById("searchBox").style.display="none"
+
+}
+</script>
+
+</body>
+</html>
